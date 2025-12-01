@@ -1,0 +1,5 @@
+{
+  "name": "Markdown to Unicode Converter",
+  "description": "A simple tool to convert basic Markdown text into formatted Unicode text, perfect for platforms like LinkedIn that have limited text formatting options. Supports bold, italic, lists, and more.",
+  "requestFramePermissions": []
+}
