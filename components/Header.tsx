@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { SettingsIcon } from './icons/SettingsIcon.tsx';
 
@@ -8,26 +7,32 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
   return (
-    <header className="pt-8 pb-4 sm:pt-12 sm:pb-6 relative px-4">
-      {onOpenSettings && (
-        <div className="absolute top-4 right-4 sm:top-8 sm:right-8">
+    <header className="relative py-12 px-6 border-b-2 border-cyan-900 bg-black/40">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="text-center md:text-left relative">
+          <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-1 h-12 bg-pink-500 hidden md:block"></div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-tighter neon-text-cyan italic">
+            MKDN_<span className="text-pink-500">X</span>_UNICODE
+          </h1>
+          <p className="mt-2 text-sm text-cyan-500/80 uppercase tracking-[0.3em] font-bold">
+            Transcoding Signal For Social Grid_
+          </p>
+        </div>
+
+        {onOpenSettings && (
           <button
             onClick={onOpenSettings}
-            className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-full transition-colors"
-            title="Settings"
+            className="group flex items-center gap-3 px-6 py-2 border-2 border-cyan-500 bg-transparent text-cyan-500 hover:bg-cyan-500 hover:text-black transition-all duration-300 font-bold uppercase text-sm"
+            title="Terminal Settings"
           >
             <SettingsIcon />
+            <span>SYS_CONFIG</span>
           </button>
-        </div>
-      )}
-      <div className="text-center">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-300">
-          Markdown to Unicode Converter
-        </h1>
-        <p className="mt-3 text-lg text-gray-400 max-w-2xl mx-auto">
-          Elevate your LinkedIn posts and comments with rich text formatting.
-        </p>
+        )}
       </div>
+      
+      {/* Decorative Corner */}
+      <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-pink-500 pointer-events-none opacity-50"></div>
     </header>
   );
 };

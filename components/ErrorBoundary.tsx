@@ -1,3 +1,4 @@
+
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {
@@ -9,14 +10,13 @@ interface State {
   error: Error | null;
 }
 
+// Fix: Extending from 'Component' directly from React often resolves property inference issues in certain TS environments
 class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: null,
-    };
-  }
+  // Initialize state directly as a class property
+  public state: State = {
+    hasError: false,
+    error: null,
+  };
 
   public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -47,6 +47,7 @@ class ErrorBoundary extends Component<Props, State> {
       );
     }
 
+    // Standard access to this.props, enabled by extending Component<Props, State>
     return this.props.children;
   }
 }

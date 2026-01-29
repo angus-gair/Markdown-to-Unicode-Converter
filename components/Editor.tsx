@@ -38,34 +38,22 @@ const Editor: React.FC<EditorProps> = ({
   const handleCopy = () => {
     navigator.clipboard.writeText(unicodeText);
     setIsCopied(true);
-    setTimeout(() => {
-      setIsCopied(false);
-    }, 2000);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
   const handleClear = () => {
     setMarkdownText('');
-    if (markdownTextareaRef.current) {
-      markdownTextareaRef.current.focus();
-    }
+    markdownTextareaRef.current?.focus();
   };
 
-  // Logic for Input Panel (Markdown)
   const insertMarkdownFormatting = (prefix: string, suffix: string) => {
     if (!markdownTextareaRef.current) return;
-
     const textarea = markdownTextareaRef.current;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const text = markdownText;
-    
-    const before = text.substring(0, start);
-    const selection = text.substring(start, end);
-    const after = text.substring(end);
-
-    const newText = before + prefix + selection + suffix + after;
+    const newText = text.substring(0, start) + prefix + text.substring(start, end) + suffix + text.substring(end);
     setMarkdownText(newText);
-
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(start + prefix.length, end + prefix.length);
@@ -78,215 +66,138 @@ const Editor: React.FC<EditorProps> = ({
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const text = markdownText;
-
-    // Expand selection to full lines
     let lineStart = text.lastIndexOf('\n', start - 1) + 1;
     let lineEnd = text.indexOf('\n', end);
     if (lineEnd === -1) lineEnd = text.length;
-
-    const selectedText = text.substring(lineStart, lineEnd);
-    const lines = selectedText.split('\n');
-
+    const lines = text.substring(lineStart, lineEnd).split('\n');
     const processedLines = lines.map((line, i) => {
-        // match indentation and existing markers
-        const match = line.match(/^(\s*)(.*)/);
-        const indent = match ? match[1] : '';
-        const content = match ? match[2] : line;
-        
-        // check if already list
-        const listMatch = content.match(/^([*+\-]|\d+\.)\s+(.*)/);
-        
-        if (listMatch) {
-            // Already a list item.
-            const existingMarker = listMatch[1];
-            const innerContent = listMatch[2];
-            
-            // If clicking UL and it is UL, remove.
-            if (type === 'ul' && ['*', '-', '+'].includes(existingMarker)) {
-                return indent + innerContent;
-            }
-            // If clicking OL and it is OL, remove.
-            if (type === 'ol' && /^\d+\.$/.test(existingMarker)) {
-                return indent + innerContent;
-            }
-            // If switching type (e.g. was UL, now OL)
-            if (type === 'ol') return `${indent}${i + 1}. ${innerContent}`;
-            if (type === 'ul') return `${indent}* ${innerContent}`;
-        }
-        
-        // Not a list item
-        if (type === 'ul') return `${indent}* ${content}`;
-        if (type === 'ol') return `${indent}${i + 1}. ${content}`;
-        
-        return line;
+      const match = line.match(/^(\s*)(.*)/);
+      const indent = match ? match[1] : '';
+      const content = match ? match[2] : line;
+      if (type === 'ul') return `${indent}* ${content}`;
+      return `${indent}${i + 1}. ${content}`;
     });
-
     const newText = text.substring(0, lineStart) + processedLines.join('\n') + text.substring(lineEnd);
     setMarkdownText(newText);
-    
-    // Restore selection
     setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(lineStart, lineStart + processedLines.join('\n').length);
+      textarea.focus();
+      textarea.setSelectionRange(lineStart, lineStart + processedLines.join('\n').length);
     }, 0);
   };
 
-  // Logic for Output Panel (Direct Unicode Transformation)
   const applyUnicodeStyle = (transformFn: (text: string) => string) => {
     if (!unicodeTextareaRef.current) return;
-    
     const textarea = unicodeTextareaRef.current;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const text = unicodeText;
-
-    if (start === end) return; // No selection to transform
-
-    const before = text.substring(0, start);
-    const selection = text.substring(start, end);
-    const after = text.substring(end);
-
-    const transformedSelection = transformFn(selection);
-    const newText = before + transformedSelection + after;
-    
+    if (start === end) return;
+    const transformedSelection = transformFn(text.substring(start, end));
+    const newText = text.substring(0, start) + transformedSelection + text.substring(end);
     setUnicodeText(newText);
-
     setTimeout(() => {
-        textarea.focus();
-        // Keep the selection over the transformed text
-        textarea.setSelectionRange(start, start + transformedSelection.length);
+      textarea.focus();
+      textarea.setSelectionRange(start, start + transformedSelection.length);
     }, 0);
   };
 
-  const ToolbarButton: React.FC<{
-    icon: React.ReactNode;
-    onClick: () => void;
-    title: string;
-  }> = ({ icon, onClick, title }) => (
+  const ToolbarButton: React.FC<{ icon: React.ReactNode; onClick: () => void; title: string }> = ({ icon, onClick, title }) => (
     <button
       onClick={onClick}
-      className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors"
+      className="p-2 text-cyan-500 hover:text-black hover:bg-cyan-500 border border-cyan-900 transition-all duration-200"
       title={title}
     >
       {icon}
     </button>
   );
 
-  const AiButton: React.FC<{
-    onClick: () => void;
-    loading: boolean;
-    children: React.ReactNode;
-    title: string;
-    'aria-label': string;
-  }> = ({ onClick, loading, children, title, 'aria-label': ariaLabel }) => (
+  const AiButton: React.FC<{ onClick: () => void; loading: boolean; children: React.ReactNode; color: 'pink' | 'cyan' }> = ({ onClick, loading, children, color }) => (
     <button
       onClick={onClick}
       disabled={loading}
-      title={title}
-      aria-label={ariaLabel}
-      className="flex items-center justify-center gap-2 px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-all duration-200 bg-indigo-600 text-white hover:bg-indigo-500 disabled:bg-indigo-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+      className={`relative px-4 py-2 text-xs font-black uppercase tracking-widest border-2 transition-all duration-300 disabled:opacity-50
+        ${color === 'pink' ? 'border-pink-500 text-pink-500 hover:bg-pink-500 hover:text-black hover:shadow-[0_0_15px_rgba(255,0,255,0.6)]' : 
+                          'border-cyan-500 text-cyan-500 hover:bg-cyan-500 hover:text-black hover:shadow-[0_0_15px_rgba(0,243,255,0.6)]'}`}
     >
-      <SparkleIcon />
-      <span className="hidden sm:inline">{children}</span>
-      <span className="sm:hidden">{children === 'Improve' ? 'Imp' : children === 'Format' ? 'Fmt' : 'Sum'}</span>
-      {loading && <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+      {loading ? 'PROCESSING...' : children}
     </button>
   );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 h-[65vh] md:h-[70vh]">
-      {/* Input Panel */}
-      <div className="flex flex-col rounded-lg bg-gray-800 border border-gray-700 shadow-lg overflow-hidden">
-        {/* Top Header with AI Actions */}
-        <div className="flex justify-between items-center p-3 border-b border-gray-700 bg-gray-800/50">
-          <h2 className="font-semibold text-gray-300 text-sm sm:text-base">Input (Markdown)</h2>
-          <div className="flex items-center gap-2">
-             <AiButton onClick={onFormat} loading={isLoading === 'format'} title="Reformat the text with AI" aria-label="Format with AI">
-              Format
-            </AiButton>
-            <AiButton onClick={onImprove} loading={isLoading === 'improve'} title="Improve the text with AI" aria-label="Improve with AI">
-              Improve
-            </AiButton>
-            <AiButton onClick={onSummarize} loading={isLoading === 'summarize'} title="Summarize the text with AI" aria-label="Summarize with AI">
-              Summarize
-            </AiButton>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 min-h-[75vh]">
+      {/* Input Module */}
+      <div className="flex flex-col border-2 border-cyan-500 bg-black shadow-[0_0_20px_rgba(0,243,255,0.15)] relative">
+        <div className="absolute -top-3 left-4 bg-black px-2 text-[10px] text-cyan-500 font-bold uppercase tracking-[0.2em] border border-cyan-500">
+          Module_A // Source_Stream
+        </div>
+        
+        <div className="flex flex-col sm:flex-row justify-between items-center p-6 border-b border-cyan-900 bg-cyan-950/20 gap-4">
+          <h2 className="font-black text-cyan-500 text-lg uppercase italic tracking-wider">Input_Raw</h2>
+          <div className="flex flex-wrap items-center gap-3">
+             <AiButton onClick={onFormat} loading={isLoading === 'format'} color="cyan">Format</AiButton>
+             <AiButton onClick={onImprove} loading={isLoading === 'improve'} color="pink">Optimize</AiButton>
+             <AiButton onClick={onSummarize} loading={isLoading === 'summarize'} color="cyan">Compress</AiButton>
           </div>
         </div>
 
-        {/* Formatting Toolbar */}
-        <div className="flex items-center gap-1 p-2 border-b border-gray-700 bg-gray-900/50 flex-wrap">
-          <ToolbarButton icon={<BoldIcon />} onClick={() => insertMarkdownFormatting('**', '**')} title="Bold (Ctrl+B)" />
-          <ToolbarButton icon={<ItalicIcon />} onClick={() => insertMarkdownFormatting('*', '*')} title="Italic (Ctrl+I)" />
+        <div className="flex items-center gap-1 p-3 bg-black border-b border-cyan-900 flex-wrap overflow-x-auto">
+          <ToolbarButton icon={<BoldIcon />} onClick={() => insertMarkdownFormatting('**', '**')} title="Bold" />
+          <ToolbarButton icon={<ItalicIcon />} onClick={() => insertMarkdownFormatting('*', '*')} title="Italic" />
           <ToolbarButton icon={<UnderlineIcon />} onClick={() => insertMarkdownFormatting('<u>', '</u>')} title="Underline" />
           <ToolbarButton icon={<StrikethroughIcon />} onClick={() => insertMarkdownFormatting('~~', '~~')} title="Strikethrough" />
-          <ToolbarButton icon={<CodeIcon />} onClick={() => insertMarkdownFormatting('`', '`')} title="Inline Code" />
-          
-          <div className="w-px h-5 bg-gray-700 mx-2 hidden sm:block"></div>
-          
-          <ToolbarButton icon={<ListIcon />} onClick={() => applyListFormatting('ul')} title="Bulleted List" />
-          <ToolbarButton icon={<OrderedListIcon />} onClick={() => applyListFormatting('ol')} title="Numbered List" />
-
-          <div className="w-px h-5 bg-gray-700 mx-2 hidden sm:block"></div>
-
-          <button
-            onClick={onUndo}
-            disabled={!canUndo || !!isLoading}
-            className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors disabled:opacity-50"
-            title="Undo last AI action"
-          >
-            <UndoIcon />
-          </button>
-          <button
-            onClick={handleClear}
-            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded transition-colors"
-            title="Clear all text"
-          >
-            <ClearIcon />
-          </button>
+          <ToolbarButton icon={<CodeIcon />} onClick={() => insertMarkdownFormatting('`', '`')} title="Monospace" />
+          <div className="w-px h-6 bg-cyan-900 mx-1"></div>
+          <ToolbarButton icon={<ListIcon />} onClick={() => applyListFormatting('ul')} title="UL" />
+          <ToolbarButton icon={<OrderedListIcon />} onClick={() => applyListFormatting('ol')} title="OL" />
+          <div className="ml-auto flex gap-1">
+            <ToolbarButton icon={<UndoIcon />} onClick={onUndo} title="Revert" />
+            <button onClick={handleClear} className="p-2 text-red-500 hover:bg-red-500 hover:text-black border border-red-900 transition-colors"><ClearIcon /></button>
+          </div>
         </div>
 
         <textarea
           ref={markdownTextareaRef}
           value={markdownText}
           onChange={(e) => setMarkdownText(e.target.value)}
-          placeholder="Type or paste your text here..."
-          className="flex-grow p-4 bg-transparent text-gray-300 resize-none focus:outline-none placeholder-gray-500 w-full font-mono text-sm leading-relaxed"
+          placeholder="ENTER_SOURCE_MARKDOWN..."
+          className="flex-grow p-8 bg-transparent text-cyan-50/90 resize-none focus:outline-none placeholder-cyan-900 w-full text-base leading-relaxed scrollbar-thin"
           spellCheck="false"
         />
       </div>
 
-      {/* Output Panel */}
-      <div className="flex flex-col rounded-lg bg-gray-800 border border-gray-700 shadow-lg overflow-hidden">
-        <div className="flex justify-between items-center p-3 border-b border-gray-700 bg-gray-800/50">
-          <h2 className="font-semibold text-gray-300 text-sm sm:text-base">Unicode Output</h2>
+      {/* Output Module - Now with unified structural Cyan border/label */}
+      <div className="flex flex-col border-2 border-cyan-500 bg-black shadow-[0_0_20px_rgba(0,243,255,0.15)] relative">
+        <div className="absolute -top-3 left-4 bg-black px-2 text-[10px] text-cyan-500 font-bold uppercase tracking-[0.2em] border border-cyan-500">
+          Module_B // Decoded_Output
+        </div>
+
+        <div className="flex justify-between items-center p-6 border-b border-cyan-900 bg-cyan-950/20">
+          <h2 className="font-black text-pink-500 text-lg uppercase italic tracking-wider">Unicode_Signal</h2>
           <button
             onClick={handleCopy}
-            className={`px-3 py-1.5 text-sm font-semibold rounded-md transition-all duration-200 flex items-center gap-2 ${
-              isCopied
-                ? 'bg-green-600 text-white'
-                : 'bg-blue-600 text-white hover:bg-blue-500'
-            }`}
+            className={`px-8 py-2 text-xs font-black uppercase tracking-widest border-2 transition-all duration-300 flex items-center gap-3
+              ${isCopied ? 'bg-green-500 text-black border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.6)]' : 
+                           'border-pink-500 text-pink-500 hover:bg-pink-500 hover:text-black hover:shadow-[0_0_15px_rgba(255,0,255,0.6)]'}`}
           >
             <CopyIcon />
-            {isCopied ? 'Copied!' : 'Copy'}
+            {isCopied ? 'SYNCED' : 'TRANSFER'}
           </button>
         </div>
         
-        {/* Output Toolbar */}
-        <div className="flex items-center gap-1 p-2 border-b border-gray-700 bg-gray-900/50 flex-wrap">
-            <span className="text-xs text-gray-500 px-2 select-none hidden sm:inline">Select text to style:</span>
-            <ToolbarButton icon={<BoldIcon />} onClick={() => applyUnicodeStyle(transformToBold)} title="Convert selection to Unicode Bold" />
-            <ToolbarButton icon={<ItalicIcon />} onClick={() => applyUnicodeStyle(transformToItalic)} title="Convert selection to Unicode Italic" />
-            <ToolbarButton icon={<BoldItalicIcon />} onClick={() => applyUnicodeStyle(transformToBoldItalic)} title="Convert selection to Unicode Bold Italic" />
-            <ToolbarButton icon={<UnderlineIcon />} onClick={() => applyUnicodeStyle(transformToUnderline)} title="Add underline to selection" />
+        <div className="flex items-center gap-1 p-3 bg-black border-b border-cyan-900 flex-wrap overflow-x-auto">
+            <span className="text-[10px] text-cyan-700 px-2 uppercase font-bold select-none">TRANSFORM_SELECTION:</span>
+            <ToolbarButton icon={<BoldIcon />} onClick={() => applyUnicodeStyle(transformToBold)} title="Bold" />
+            <ToolbarButton icon={<ItalicIcon />} onClick={() => applyUnicodeStyle(transformToItalic)} title="Italic" />
+            <ToolbarButton icon={<BoldItalicIcon />} onClick={() => applyUnicodeStyle(transformToBoldItalic)} title="Bold+Italic" />
+            <ToolbarButton icon={<UnderlineIcon />} onClick={() => applyUnicodeStyle(transformToUnderline)} title="Underline" />
         </div>
 
         <textarea
           ref={unicodeTextareaRef}
           value={unicodeText}
           onChange={(e) => setUnicodeText(e.target.value)}
-          placeholder="Formatted text will appear here. You can also type or edit directly."
-          className="flex-grow p-4 bg-gray-800 text-gray-300 resize-none focus:outline-none placeholder-gray-500 w-full cursor-text font-sans text-base leading-relaxed"
+          placeholder="WAITING_FOR_SIGNAL..."
+          className="flex-grow p-8 bg-black text-pink-50/90 resize-none focus:outline-none placeholder-pink-900 w-full text-lg leading-relaxed scrollbar-thin"
           spellCheck="false"
         />
       </div>

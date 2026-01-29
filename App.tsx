@@ -6,30 +6,24 @@ import { convertMarkdownToUnicode } from './services/markdownToUnicode.ts';
 import { improveContent, formatContent, summarizeContent } from './services/geminiService.ts';
 import { APP_VERSION, AVAILABLE_MODELS } from './constants.ts';
 
-const defaultMarkdown = `# Markdown to Unicode Converter
+const defaultMarkdown = `# MD_TRANSCODER_V1.4
 
-Welcome! This tool helps you format your text for platforms like LinkedIn that don't support standard Markdown.
+## SYSTEM_FEATURES
+- **Bold**: \`**Stand out in the sprawl**\`
+- *Italic*: \`*Emphasize the signal*\`
+- ***Bold_Italic***: \`***Maximum bandwidth!***\`
+- \`Monospace for netrunners\`
+- ~~Strikethrough old data~~
 
-## Features
-- **Bold Text**: \`**Make your skills stand out**\`
-- *Italic Text*: \`*Emphasize key points*\`
-- ***Bold & Italic***: \`***For maximum impact!***\`
-- \`Monospace for code or technical terms\`
-- ~~Strikethrough text~~
+### INPUT_PROTOCOL
+1. Feed the Markdown on the left.
+2. Signal translates to Unicode instantly.
+3. Extract and deploy to your feed.
 
-### Example Usage
-Here's how you can format your experience:
-
-**Senior React Engineer** | _Tech Solutions Inc._
-- Developed and maintained complex user interfaces using React, TypeScript, and Tailwind CSS.
-- Led the migration of a legacy codebase to a modern React stack, improving performance by 30%.
-- Mentored junior developers and conducted code reviews to ensure high-quality standards.
-
----
-
-1. Simply type or paste your Markdown text on the left.
-2. The Unicode version will appear instantly on the right.
-3. Click the copy button and paste it into your profile or post!`;
+**NETRUNNER_STATUS** | _LEVEL 7_
+- High-fidelity text mapping active.
+- Neuro-link formatting optimized for LinkedIn.
+- AI Co-processor (Gemini) standby.`;
 
 const App: React.FC = () => {
   const [markdownText, setMarkdownText] = useState<string>(defaultMarkdown);
@@ -38,9 +32,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<false | 'improve' | 'format' | 'summarize'>(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Settings State
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  // Default to Gemini 3 Pro Preview as per instructions for complex tasks, or allow user override
   const [selectedModel, setSelectedModel] = useState<string>(AVAILABLE_MODELS[0].id);
 
   useEffect(() => {
@@ -54,12 +46,11 @@ const App: React.FC = () => {
     setIsLoading('improve');
     setPreviousMarkdownText(markdownText);
     try {
-      // Pass selected model
       const improvedText = await improveContent(markdownText, selectedModel);
       setMarkdownText(improvedText);
     } catch (e: any) {
-      setError(e.message || 'An unknown error occurred.');
-      setPreviousMarkdownText(null); // Clear undo state on error
+      setError(e.message || 'IO_ERROR_NEURAL_LINK_FAILED');
+      setPreviousMarkdownText(null);
     } finally {
       setIsLoading(false);
     }
@@ -71,11 +62,10 @@ const App: React.FC = () => {
     setIsLoading('format');
     setPreviousMarkdownText(markdownText);
     try {
-      // Pass selected model
       const formattedText = await formatContent(markdownText, selectedModel);
       setMarkdownText(formattedText);
     } catch (e: any) {
-      setError(e.message || 'An unknown error occurred.');
+      setError(e.message || 'IO_ERROR_PROTOCOL_FAILED');
       setPreviousMarkdownText(null);
     } finally {
       setIsLoading(false);
@@ -88,11 +78,10 @@ const App: React.FC = () => {
     setIsLoading('summarize');
     setPreviousMarkdownText(markdownText);
     try {
-      // Pass selected model
       const summarizedText = await summarizeContent(markdownText, selectedModel);
       setMarkdownText(summarizedText);
     } catch (e: any) {
-      setError(e.message || 'An unknown error occurred.');
+      setError(e.message || 'IO_ERROR_COMPRESSION_FAILED');
       setPreviousMarkdownText(null);
     } finally {
       setIsLoading(false);
@@ -107,16 +96,22 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-200 font-sans antialiased">
+    <div className="min-h-screen bg-transparent text-gray-300 font-mono antialiased overflow-x-hidden">
       <Header onOpenSettings={() => setIsSettingsOpen(true)} />
       
-      <main className="container mx-auto px-4 py-6 sm:py-8">
+      <main className="max-w-7xl mx-auto px-6 py-10">
         {error && (
-          <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-md relative mb-4" role="alert">
-            <strong className="font-bold">Error: </strong>
-            <span className="block sm:inline">{error}</span>
+          <div className="bg-black border-2 border-red-600 text-red-500 px-6 py-4 mb-8 flex items-center justify-between shadow-[0_0_15px_rgba(220,38,38,0.4)]">
+            <div>
+              <strong className="uppercase tracking-widest font-bold">SYSTEM_ERROR: </strong>
+              <span>{error}</span>
+            </div>
+            <button onClick={() => setError(null)} className="text-red-500 hover:text-white transition-colors">
+              [X]
+            </button>
           </div>
         )}
+        
         <Editor
           markdownText={markdownText}
           setMarkdownText={setMarkdownText}
@@ -131,8 +126,12 @@ const App: React.FC = () => {
         />
       </main>
       
-      <footer className="text-center py-4 text-gray-500 text-sm">
-        <p>Built for enhanced text formatting on social platforms. AI-powered by Gemini. <span className="text-gray-700 ml-2">v{APP_VERSION}</span></p>
+      <footer className="text-center py-8 text-gray-600 text-[10px] tracking-widest uppercase">
+        <p>
+          <span className="text-cyan-500">PROJECT_UNICODE</span> // 
+          <span className="mx-2 text-pink-500">CO-PROCESSOR_GEMINI</span> // 
+          <span className="ml-2">v{APP_VERSION}</span>
+        </p>
       </footer>
 
       <SettingsModal 

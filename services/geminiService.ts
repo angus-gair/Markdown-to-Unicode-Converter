@@ -6,12 +6,18 @@ const getGenAI = () => {
 
 // Helper to determine config based on model
 const getConfig = (model: string) => {
+  // Thinking Config is available for Gemini 3 and 2.5 series
   if (model === 'gemini-3-pro-preview') {
     return {
       thinkingConfig: { thinkingBudget: 32768 }
     };
   }
-  // For other models (like flash), we stick to defaults (no explicit thinking budget)
+  if (model === 'gemini-3-flash-preview') {
+    return {
+      thinkingConfig: { thinkingBudget: 16384 }
+    };
+  }
+  // For other models (like flash-lite), we stick to defaults
   return {};
 };
 
@@ -38,7 +44,7 @@ ${text}
   }
 };
 
-export const formatContent = async (text: string, model: string = 'gemini-2.5-flash'): Promise<string> => {
+export const formatContent = async (text: string, model: string = 'gemini-3-flash-preview'): Promise<string> => {
     if (!text.trim()) {
     return text;
   }
@@ -61,7 +67,7 @@ ${text}
   }
 };
 
-export const summarizeContent = async (text: string, model: string = 'gemini-2.5-flash'): Promise<string> => {
+export const summarizeContent = async (text: string, model: string = 'gemini-3-flash-preview'): Promise<string> => {
   if (!text.trim()) {
     return text;
   }
