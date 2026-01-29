@@ -1,5 +1,6 @@
 
-export const APP_VERSION = "1.2.0";
+
+export const APP_VERSION = "1.4.0";
 
 export const AVAILABLE_MODELS = [
   { id: 'gemini-3-pro-preview', name: 'Gemini 3.0 Pro (Thinking)', description: 'Best for complex reasoning and improvement' },

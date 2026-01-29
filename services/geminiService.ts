@@ -1,9 +1,6 @@
-
 import { GoogleGenAI } from "@google/genai";
 
 const getGenAI = () => {
-  // The API key is automatically sourced from the environment.
-  // We create a new instance each time to ensure we pick up any changes in auth state.
   return new GoogleGenAI({ apiKey: process.env.API_KEY });
 };
 
@@ -35,9 +32,9 @@ ${text}
       config: getConfig(model),
     });
     return response.text || text;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error improving content:", error);
-    throw new Error("Failed to improve content. Please ensure you have authorized your Google account in Settings.");
+    throw new Error(`Failed to improve content. ${error.message || ''}`);
   }
 };
 
@@ -58,9 +55,9 @@ ${text}
       config: getConfig(model),
     });
     return response.text || text;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error formatting content:", error);
-    throw new Error("Failed to format content. Please ensure you have authorized your Google account in Settings.");
+    throw new Error(`Failed to format content. ${error.message || ''}`);
   }
 };
 
@@ -81,8 +78,8 @@ ${text}
       config: getConfig(model),
     });
     return response.text || text;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error summarizing content:", error);
-    throw new Error("Failed to summarize content. Please ensure you have authorized your Google account in Settings.");
+    throw new Error(`Failed to summarize content. ${error.message || ''}`);
   }
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header.tsx';
 import Editor from './components/Editor.tsx';
@@ -61,10 +60,6 @@ const App: React.FC = () => {
     } catch (e: any) {
       setError(e.message || 'An unknown error occurred.');
       setPreviousMarkdownText(null); // Clear undo state on error
-      // Automatically open settings if it's an auth error (simple heuristic)
-      if (e.message.includes('authorized') || e.message.includes('API key')) {
-        setIsSettingsOpen(true);
-      }
     } finally {
       setIsLoading(false);
     }
@@ -82,9 +77,6 @@ const App: React.FC = () => {
     } catch (e: any) {
       setError(e.message || 'An unknown error occurred.');
       setPreviousMarkdownText(null);
-      if (e.message.includes('authorized') || e.message.includes('API key')) {
-        setIsSettingsOpen(true);
-      }
     } finally {
       setIsLoading(false);
     }
@@ -102,9 +94,6 @@ const App: React.FC = () => {
     } catch (e: any) {
       setError(e.message || 'An unknown error occurred.');
       setPreviousMarkdownText(null);
-      if (e.message.includes('authorized') || e.message.includes('API key')) {
-        setIsSettingsOpen(true);
-      }
     } finally {
       setIsLoading(false);
     }
